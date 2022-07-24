@@ -145,5 +145,5 @@ if (!class_exists('Wpyoutube_Updater')) {
 $updater = new Wpyoutube_Updater(__FILE__);
 $updater->set_username('mahadsprouttech');
 $updater->set_repository('cg-auth-plugin');
-$updater->authorize('a1707aba0c33d6e25e6b1ef258a640e9bc6b8c64');
+$updater->authorize('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');
 $updater->initialize();
