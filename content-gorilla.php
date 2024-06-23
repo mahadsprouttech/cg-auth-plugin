@@ -4,7 +4,7 @@
  * Description: Used to authenticate your WordPress website with Content Gorilla.
  * Author: Sprout Tech
  * Author URI: www.contentgorilla.co
- * Version: 1.5.3
+ * Version: 1.5.4
  * Plugin URI: www.contentgorilla.co
  */
 
