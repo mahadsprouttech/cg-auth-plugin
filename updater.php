@@ -32,7 +32,7 @@ class Wpyoutube_Updater
     }
     private function get_repository_info() {
         if ( is_null( $this->github_response ) ) { // Do we have a response?
-            $request_uri = sprintf( 'https://api.github.com/repos/%s/%s/releases', $this->username, $this->repository ); // Build URI
+            $request_uri = sprintf( 'https://api.github.com/repos/%s/%s/releases/latest', $this->username, $this->repository ); // Build URI
 
             $response = json_decode( wp_remote_retrieve_body( wp_remote_get( $request_uri ) ), true ); // Get JSON and parse it
             
