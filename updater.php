@@ -56,7 +56,7 @@ class Wpyoutube_Updater
 		$parsed_args['headers'] = [];
 	    }
 
-	    if(strpos($url, "https://api.github.com/repos/{$this->username}/{$this->repository}") !== FALSE)
+	    if(strpos($url, "https://api.github.com/repos/{$this->username}/{$this->repository}") !== FALSE and !empty($this->authorize_token))
 	    {
 		$parsed_args['headers']['Authorization'] = "token $this->authorize_token";
 	    }
