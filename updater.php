@@ -31,16 +31,26 @@ class Wpyoutube_Updater
         $this->authorize_token = $token;
     }
     private function get_repository_info() {
-        if ( is_null( $this->github_response ) ) { // Do we have a response?
-            $request_uri = sprintf( 'https://api.github.com/repos/%s/%s/releases/latest', $this->username, $this->repository ); // Build URI
+        if ( is_null( $this->github_response ) ) { // Check if we already have a response
+            $request_uri = sprintf( 'https://api.github.com/repos/%s/%s/releases/latest', $this->username, $this->repository );
 
-            $response = json_decode( wp_remote_retrieve_body( wp_remote_get( $request_uri ) ), true ); // Get JSON and parse it
-            
-            if( is_array( $response ) ) { // If it is an array
-                $response = current( $response ); // Get the first item
-            }            
+            $response = wp_remote_get( $request_uri );
 
-            $this->github_response = $response; // Set it to our property
+            if ( ! is_wp_error( $response ) && $response['response']['code'] === 200 ) {
+                $body = wp_remote_retrieve_body( $response );
+                $json = json_decode( $body, true );
+
+                if ( is_array( $json ) && ! empty( $json ) ) {
+                    // Assuming the response contains necessary fields like 'tag_name', 'zipball_url', etc.
+                    $this->github_response = $json;
+                } else {
+                    // Handle case where response is not as expected
+                    $this->github_response = array(); // or handle an appropriate default
+                }
+            } else {
+                // Handle error case
+                $this->github_response = array(); // or handle an appropriate default
+            }
         }
     }
     public function initialize() {
@@ -49,7 +59,7 @@ class Wpyoutube_Updater
         add_filter( 'upgrader_post_install', array( $this, 'after_install' ), 10, 3 );
         add_filter( "http_request_args", array( $this, "addGithubAccessTokenToHeaders") , 10, 3);
     }
-    
+
     public function addGithubAccessTokenToHeaders($parsed_args, $url){
 	    if(empty($parsed_args['headers']))
 	    {
@@ -60,25 +70,27 @@ class Wpyoutube_Updater
 	    {
 		$parsed_args['headers']['Authorization'] = "token $this->authorize_token";
 	    }
-	    
+
 	    return $parsed_args;
     }
-    
+
     public function modify_transient( $transient ) {
         if( property_exists( $transient, 'checked') ) { // Check if transient has a checked property
             if( $checked = $transient->checked ) { // Did Wordpress check for updates?
                 $this->get_repository_info(); // Get the repo info
-                $out_of_date = version_compare( $this->github_response['tag_name'], $checked[ $this->basename ], 'gt' ); // Check if we're out of date
-                if( $out_of_date ) {
-                    $new_files = $this->github_response['zipball_url']; // Get the ZIP
-                    $slug = current( explode('/', $this->basename ) ); // Create valid slug
-                    $plugin = array( // setup our plugin info
-                        'url' => $this->plugin["PluginURI"],
-                        'slug' => $slug,
-                        'package' => $new_files,
-                        'new_version' => $this->github_response['tag_name']
-                    );
-                    $transient->response[$this->basename] = (object) $plugin; // Return it in response
+                if ( isset ( $this->github_response['tag_name'] ) ) {
+                    $out_of_date = version_compare( $this->github_response['tag_name'], $checked[ $this->basename ], 'gt' ); // Check if we're out of date
+                    if ( $out_of_date ) {
+                        $new_files = $this->github_response['zipball_url']; // Get the ZIP
+                        $slug = current( explode ('/', $this->basename ) ); // Create valid slug
+                        $plugin = array( // setup our plugin info
+                            'url' => $this->plugin["PluginURI"],
+                            'slug' => $slug,
+                            'package' => $new_files,
+                            'new_version' => $this->github_response['tag_name']
+                        );
+                        $transient->response[$this->basename] = (object)$plugin; // Return it in response
+                    }
                 }
             }
         }
@@ -128,4 +140,3 @@ class Wpyoutube_Updater
         return $result;
     }
 }
-
