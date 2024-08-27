@@ -50,7 +50,9 @@ class WordPressData
             wp_set_post_categories($post_id, $categories, false);
         }
 
-        $this->Generate_Featured_Image($image_url, $post_id);
+        if (!empty($image_url)) {
+            $this->Generate_Featured_Image($image_url, $post_id);
+        }
 
         return $post_id;
     }
