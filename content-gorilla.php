@@ -4,7 +4,7 @@
  * Description: Used to authenticate your WordPress website with Content Gorilla.
  * Author: Sprout Tech
  * Author URI: www.contentgorilla.co
- * Version: 1.5.6
+ * Version: 1.5.7
  * Plugin URI: www.contentgorilla.co
  */
 
@@ -68,6 +68,15 @@ function json_basic_auth_error($error)
         return $error;
     }
 
+    // Check if user is already authenticated via another method
+    // (e.g., WordPress Application Passwords at priority 10)
+    $current_user = wp_get_current_user();
+    if ($current_user && $current_user->ID > 0) {
+        // User is authenticated, don't return our auth error
+        return $error;
+    }
+
+    // Only return our error if no authentication succeeded
     global $wp_json_basic_auth_error;
 
     return $wp_json_basic_auth_error;
